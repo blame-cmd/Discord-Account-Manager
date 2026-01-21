@@ -21,8 +21,6 @@ Master password gate: A single master secret unlocks the vault; the raw password
 Node.js ≥ 18.0.0 for modern crypto APIs and ChaCha20‑Poly1305 support.​
 
 Electron (any recent LTS-compatible version) for the desktop shell.
-
-Optional native deps if you wire in Argon2 via a native module (build tools required per platform).
 ​
 ---
 
