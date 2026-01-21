@@ -3,7 +3,7 @@ An Electron-based desktop client for managing Discord accounts with encrypted lo
 ​
 ---
 
-# Features 
+# `🔨`︲ Features 
 Multi-account switching: Swap between accounts without re-authing every time; sessions are pulled straight from the encrypted vault.
 ​
 
@@ -17,7 +17,7 @@ Master password gate: A single master secret unlocks the vault; the raw password
 ​
 ---
 
-# Prerequisites
+# `🛠️`︲ Prerequisites
 Node.js ≥ 18.0.0 for modern crypto APIs and ChaCha20‑Poly1305 support.​
 
 Electron (any recent LTS-compatible version) for the desktop shell.
@@ -26,7 +26,7 @@ Optional native deps if you wire in Argon2 via a native module (build tools requ
 ​
 ---
 
-# Encryption Specs
+# `❗`︲Encryption Specs
 The app treats Discord tokens and related secrets as a single encrypted payload instead of rows in a database.
 
 Key derivation: The master password is stretched with Argon2id into a 32‑byte key (256‑bit) suitable for symmetric encryption.
@@ -35,11 +35,8 @@ Key derivation: The master password is stretched with Argon2id into a 32‑byte 
 Cipher mode: All sensitive data is sealed using ChaCha20‑Poly1305 AEAD; the Poly1305 tag is verified on every read before any decryption is trusted.
 ​
 
-Tamper detection: Any byte flipped on disk causes tag verification to fail, and the vault is treated as corrupted rather than partially decrypted.
-​
-
 In‑memory handling: Decrypted tokens live only in RAM for the lifetime of the process and are never written back to disk in plaintext form.
 ​
 
 > [!IMPORTANT]
-> - ⚠️ **This is a personal tool for account management and experimentation, not an official Discord product. Automating or manipulating user accounts can violate Discord’s Terms of Service; use it at your own risk and only against accounts you own.
+> - ⚠️ **This is a personal tool for account management and experimentation, not an official Discord product. Automating or manipulating user accounts can violate Discord’s Terms of Service; use it at your own risk and only against accounts you own.**
