@@ -1,3 +1,6 @@
+
+⚠️ Building from src might be buggy as I implemented a password manager also but the release is the working file. I will upload the old SRC without password manager soon.⚠️
+
 # ` 👾 `︲ Discord Account Manager
 An Electron-based desktop client for managing Discord accounts with encrypted local storage using ChaCha20‑Poly1305 for tokens and session data.
 ​
