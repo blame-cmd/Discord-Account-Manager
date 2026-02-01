@@ -38,3 +38,5 @@ In‑memory handling: Decrypted tokens live only in RAM for the lifetime of the 
 
 > [!IMPORTANT]
 > - ⚠️ **This is a personal tool for account management and experimentation, not an official Discord product. Automating or manipulating user accounts can violate Discord’s Terms of Service; use it at your own risk and only against accounts you own.**
+
+issues @6mbn on dc
