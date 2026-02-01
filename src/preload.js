@@ -19,12 +19,5 @@ contextBridge.exposeInMainWorld('api', {
   saveAppSettings: (settings) => ipcRenderer.invoke('save-app-settings', settings),
   minimizeWindow: () => ipcRenderer.send('minimize-window'),
   maximizeWindow: () => ipcRenderer.send('maximize-window'),
-  closeWindow: () => ipcRenderer.send('close-window'),
-  getPasswords: () => ipcRenderer.invoke('get-passwords'),
-  addPassword: (passwordData, encryptionPassword) => ipcRenderer.invoke('add-password', passwordData, encryptionPassword),
-  updatePassword: (passwordId, passwordData, encryptionPassword) => ipcRenderer.invoke('update-password', passwordId, passwordData, encryptionPassword),
-  deletePassword: (passwordId) => ipcRenderer.invoke('delete-password', passwordId),
-  decryptPassword: (passwordId, encryptionPassword) => ipcRenderer.invoke('decrypt-password', passwordId, encryptionPassword),
-  openLauncher: () => ipcRenderer.invoke('open-launcher'),
-  openManager: (managerType) => ipcRenderer.send('open-manager', managerType)
+  closeWindow: () => ipcRenderer.send('close-window')
 });

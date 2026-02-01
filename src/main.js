@@ -26,14 +26,6 @@ const store = new Store({
   }
 });
 
-const passwordStore = new Store({
-  name: 'passwords',
-  encryptionKey: 'blame-manager-passwords-key-2024',
-  defaults: {
-    passwords: []
-  }
-});
-
 let mainWindow;
 const discordProcesses = new Map();
 
@@ -75,8 +67,10 @@ function getIconForAccent(accentName) {
 }
 
 function createWindow() {
+  const settings = store.get('settings') || { accentName: 'teal' };
+  const iconFile = getIconForAccent(settings.accentName);
   const fs = require('fs');
-  let iconPath = path.join(__dirname, '../assets/mullvaad.ico');
+  let iconPath = path.join(__dirname, '../assets', iconFile);
   
   if (!fs.existsSync(iconPath)) {
     iconPath = path.join(__dirname, '../assets/default.ico');
@@ -88,7 +82,6 @@ function createWindow() {
     frame: false,
     transparent: true,
     resizable: false,
-    roundedCorners: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -97,7 +90,7 @@ function createWindow() {
     icon: iconPath
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'renderer/launcher.html'));
+  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 }
 
 app.whenReady().then(async () => {
@@ -643,126 +636,3 @@ ipcMain.on('maximize-window', () => {
   mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
 });
 ipcMain.on('close-window', () => mainWindow.close());
-
-ipcMain.on('open-manager', (event, managerType) => {
-  console.log('open-manager received:', managerType);
-  if (managerType === 'discord') {
-    console.log('Loading Discord manager...');
-    mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
-  } else if (managerType === 'password') {
-    console.log('Loading Password manager...');
-    mainWindow.loadFile(path.join(__dirname, 'renderer/password-manager.html'));
-  } else {
-    console.error('Unknown manager type:', managerType);
-  }
-});
-
-ipcMain.handle('get-passwords', () => {
-  const passwords = passwordStore.get('passwords');
-  return passwords.map(pwd => ({
-    id: pwd.id,
-    username: pwd.username || null,
-    email: pwd.email || null,
-    site: pwd.site || null,
-    photo: pwd.photo || null,
-    hasPassword: !!pwd.encryptedPassword,
-    hasNotes: !!pwd.encryptedNotes
-  }));
-});
-
-ipcMain.handle('add-password', (event, passwordData, encryptionPassword) => {
-  const passwords = passwordStore.get('passwords');
-  const { username, email, password, site, photo, notes } = passwordData;
-  
-  const encryptedPassword = encryptChaCha20Poly1305(password, encryptionPassword);
-  const encryptedNotes = notes ? encryptChaCha20Poly1305(notes, encryptionPassword) : null;
-  
-  const newPassword = {
-    id: Date.now().toString(),
-    username: username || null,
-    email: email || null,
-    site: site || null,
-    photo: photo || null,
-    encryptedPassword: encryptedPassword,
-    encryptedNotes: encryptedNotes,
-    createdAt: Date.now()
-  };
-  
-  passwords.push(newPassword);
-  passwordStore.set('passwords', passwords);
-  
-  return { success: true };
-});
-
-ipcMain.handle('update-password', (event, passwordId, passwordData, encryptionPassword) => {
-  const passwords = passwordStore.get('passwords');
-  const passwordIndex = passwords.findIndex(p => p.id === passwordId);
-  
-  if (passwordIndex === -1) {
-    return { success: false, error: 'Password not found' };
-  }
-  
-  const { username, email, password, site, photo, notes } = passwordData;
-  
-  const encryptedPassword = encryptChaCha20Poly1305(password, encryptionPassword);
-  const encryptedNotes = notes ? encryptChaCha20Poly1305(notes, encryptionPassword) : null;
-  
-  passwords[passwordIndex] = {
-    ...passwords[passwordIndex],
-    username: username || null,
-    email: email || null,
-    site: site || null,
-    photo: photo || null,
-    encryptedPassword: encryptedPassword,
-    encryptedNotes: encryptedNotes,
-    updatedAt: Date.now()
-  };
-  
-  passwordStore.set('passwords', passwords);
-  
-  return { success: true };
-});
-
-ipcMain.handle('delete-password', (event, passwordId) => {
-  const passwords = passwordStore.get('passwords').filter(p => p.id !== passwordId);
-  passwordStore.set('passwords', passwords);
-  return { success: true };
-});
-
-ipcMain.handle('decrypt-password', (event, passwordId, encryptionPassword) => {
-  const passwords = passwordStore.get('passwords');
-  const password = passwords.find(p => p.id === passwordId);
-  
-  if (!password || !password.encryptedPassword) {
-    return { success: false, error: 'Password not found' };
-  }
-  
-  const decryptedPassword = decryptChaCha20Poly1305(password.encryptedPassword, encryptionPassword);
-  if (!decryptedPassword.success) {
-    return { success: false, error: 'Wrong password' };
-  }
-  
-  let decryptedNotes = null;
-  if (password.encryptedNotes) {
-    const notesResult = decryptChaCha20Poly1305(password.encryptedNotes, encryptionPassword);
-    if (notesResult.success) {
-      decryptedNotes = notesResult.data;
-    }
-  }
-  
-  return {
-    success: true,
-    data: {
-      username: password.username,
-      email: password.email,
-      password: decryptedPassword.data,
-      site: password.site,
-      photo: password.photo,
-      notes: decryptedNotes
-    }
-  };
-});
-
-ipcMain.handle('open-launcher', () => {
-  mainWindow.loadFile(path.join(__dirname, 'renderer/launcher.html'));
-});

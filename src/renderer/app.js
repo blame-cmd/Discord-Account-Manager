@@ -337,13 +337,6 @@ function setupEventListeners() {
   detailsPanel.addEventListener('mouseenter', cancelHideDetailsTimer);
   detailsPanel.addEventListener('mouseleave', hideDetailsPanel);
 
-  const backBtn = document.getElementById('back-btn');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      window.api.openLauncher();
-    });
-  }
-
   appSettingsBtn.addEventListener('click', openAppSettingsModal);
   appSettingsModalClose.addEventListener('click', closeAppSettingsModal);
   appSettingsCancelBtn.addEventListener('click', closeAppSettingsModal);
