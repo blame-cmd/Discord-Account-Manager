@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://cdn.discordapp.com data:;">
+  <title>BlameManager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Titlebar -->
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <span class="encryption-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          ChaCha20
+        </span>
+      </div>
+      <div class="titlebar-center">
+        <span class="app-title">BlameManager</span>
+      </div>
+      <div class="titlebar-controls">
+        <button class="titlebar-btn" id="back-btn" title="Back to Launcher">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="titlebar-btn settings" id="app-settings-btn" title="App Settings">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="titlebar-btn minimize" onclick="window.api.minimizeWindow()">
+          <svg width="12" height="12" viewBox="0 0 12 12"><rect y="5" width="12" height="2" fill="currentColor"/></svg>
+        </button>
+        <button class="titlebar-btn close" onclick="window.api.closeWindow()">
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="2"/>
+            <line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <h1>Your Accounts</h1>
+        <p class="subtitle">Encrypted with ChaCha20-Poly1305</p>
+      </div>
+
+      <!-- Accounts List -->
+      <div class="accounts-container">
+        <div id="accounts-list" class="accounts-list">
+          <!-- Accounts will be rendered here -->
+        </div>
+
+        <!-- Add Account Button -->
+        <button class="add-account-btn" id="add-account-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Add Account</span>
+        </button>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar" id="status-bar">
+        <span class="status-text" id="status-text">Ready</span>
+      </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Add Account</h2>
+          <button class="modal-close" id="modal-close">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="token-input">Discord Token</label>
+            <div class="token-input-wrapper">
+              <input type="password" id="token-input" placeholder="Paste your Discord token here" autocomplete="off" spellcheck="false">
+              <button class="toggle-visibility" id="toggle-visibility">
+                <svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="preview-card" id="preview-card">
+            <div class="preview-loading" id="preview-loading">
+              <div class="spinner"></div>
+              <span>Validating token...</span>
+            </div>
+            <div class="preview-content" id="preview-content">
+              <img class="preview-avatar" id="preview-avatar" src="" alt="Avatar">
+              <div class="preview-info">
+                <span class="preview-name" id="preview-name"></span>
+                <span class="preview-id" id="preview-id"></span>
+              </div>
+              <div class="preview-valid">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="preview-error" id="preview-error">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Invalid token</span>
+            </div>
+          </div>
+
+          <div class="input-group password-section" id="password-section">
+            <label for="password-input">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              Encryption Password
+            </label>
+            <input type="password" id="password-input" placeholder="Create a strong password" autocomplete="new-password">
+            <p class="input-hint">This password encrypts your token locally using ChaCha20-Poly1305</p>
+          </div>
+
+          <div class="input-group" id="confirm-password-section">
+            <label for="confirm-password-input">Confirm Password</label>
+            <input type="password" id="confirm-password-input" placeholder="Confirm your password" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+          <button class="btn btn-primary" id="save-btn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Save & Encrypt
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Prompt Modal -->
+    <div class="modal-overlay" id="password-modal">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2 id="password-modal-title">Enter Password</h2>
+          <button class="modal-close" id="password-modal-close">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-description" id="password-modal-desc">Enter your password to decrypt this account</p>
+          <div class="input-group">
+            <input type="password" id="prompt-password-input" placeholder="Password" autocomplete="current-password">
+            <p class="password-error" id="password-error"></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="password-cancel-btn">Cancel</button>
+          <button class="btn btn-primary" id="password-confirm-btn">Unlock</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="modal-overlay" id="notes-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2"/>
+              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Account Notes
+          </h2>
+          <button class="modal-close" id="notes-modal-close">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="notes-account-info" id="notes-account-info">
+            <!-- Account info rendered here -->
+          </div>
+          <div class="input-group">
+            <label for="notes-textarea">Notes</label>
+            <textarea id="notes-textarea" placeholder="Add notes about this account..." rows="6"></textarea>
+          </div>
+          <div class="encrypt-notes-toggle">
+            <label class="toggle-switch">
+              <input type="checkbox" id="encrypt-notes-checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              Encrypt notes with password
+            </span>
+          </div>
+          <div class="input-group notes-password-group" id="notes-password-group">
+            <input type="password" id="notes-password-input" placeholder="Password for encryption">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="notes-cancel-btn">Cancel</button>
+          <button class="btn btn-primary" id="notes-save-btn">Save Notes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+      <button class="context-item" data-action="open">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 3h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Open Discord</span>
+      </button>
+      <button class="context-item" data-action="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Settings</span>
+      </button>
+      <button class="context-item has-details" data-action="details">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <line x1="12" y1="16" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Account Details</span>
+        <svg class="arrow-icon" width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="context-item" data-action="notes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2"/>
+          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Notes</span>
+      </button>
+      <button class="context-item" data-action="copy">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+          <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>Copy Token</span>
+      </button>
+      <div class="context-divider"></div>
+      <button class="context-item danger" data-action="delete">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Delete Account</span>
+      </button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Account Settings
+          </h2>
+          <button class="modal-close" id="settings-modal-close">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="settings-account-info" id="settings-account-info">
+            <!-- Account info rendered here -->
+          </div>
+          
+          <div class="input-group">
+            <label for="settings-nickname">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              Custom Nickname
+            </label>
+            <input type="text" id="settings-nickname" placeholder="Leave empty to use Discord name">
+          </div>
+          
+          <div class="input-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="12" r="4" fill="currentColor"/>
+              </svg>
+              Account Color
+            </label>
+            <div class="color-picker" id="color-picker">
+              <button class="color-option" data-color="" title="Default">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="2"/>
+                  <line x1="20" y1="4" x2="4" y2="20" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="color-option" data-color="#ff4757" style="--color: #ff4757"></button>
+              <button class="color-option" data-color="#ff6b81" style="--color: #ff6b81"></button>
+              <button class="color-option" data-color="#ffa502" style="--color: #ffa502"></button>
+              <button class="color-option" data-color="#ffdd59" style="--color: #ffdd59"></button>
+              <button class="color-option" data-color="#2ed573" style="--color: #2ed573"></button>
+              <button class="color-option" data-color="#7bed9f" style="--color: #7bed9f"></button>
+              <button class="color-option" data-color="#00d4aa" style="--color: #00d4aa"></button>
+              <button class="color-option" data-color="#1e90ff" style="--color: #1e90ff"></button>
+              <button class="color-option" data-color="#70a1ff" style="--color: #70a1ff"></button>
+              <button class="color-option" data-color="#5352ed" style="--color: #5352ed"></button>
+              <button class="color-option" data-color="#a55eea" style="--color: #a55eea"></button>
+              <button class="color-option" data-color="#ff73fa" style="--color: #ff73fa"></button>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              Window Icon
+            </label>
+            <div class="icon-picker" id="icon-picker">
+              <!-- Icons will be loaded dynamically -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="settings-cancel-btn">Cancel</button>
+          <button class="btn btn-primary" id="settings-save-btn">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Panel -->
+    <div class="details-panel" id="details-panel">
+      <!-- Details content will be rendered by JS -->
+    </div>
+
+    <!-- App Settings Modal -->
+    <div class="modal-overlay" id="app-settings-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            App Settings
+          </h2>
+          <button class="modal-close" id="app-settings-modal-close">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Theme
+            </label>
+            <div class="theme-picker" id="theme-picker">
+              <button class="theme-option" data-theme="dark">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Dark</span>
+              </button>
+              <button class="theme-option" data-theme="light">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Light</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="12" r="4" fill="currentColor"/>
+              </svg>
+              Accent Color
+            </label>
+            <div class="accent-picker" id="accent-picker">
+              <button class="accent-option" data-color="#00d4aa" data-name="teal" style="--accent: #00d4aa" title="Teal"></button>
+              <button class="accent-option" data-color="#ff4757" data-name="red" style="--accent: #ff4757" title="Red"></button>
+              <button class="accent-option" data-color="#ff6b81" data-name="pink" style="--accent: #ff6b81" title="Pink"></button>
+              <button class="accent-option" data-color="#ffa502" data-name="orange" style="--accent: #ffa502" title="Orange"></button>
+              <button class="accent-option" data-color="#ffdd59" data-name="yellow" style="--accent: #ffdd59" title="Yellow"></button>
+              <button class="accent-option" data-color="#2ed573" data-name="green" style="--accent: #2ed573" title="Green"></button>
+              <button class="accent-option" data-color="#1e90ff" data-name="blue" style="--accent: #1e90ff" title="Blue"></button>
+              <button class="accent-option" data-color="#5352ed" data-name="indigo" style="--accent: #5352ed" title="Indigo"></button>
+              <button class="accent-option" data-color="#a55eea" data-name="purple" style="--accent: #a55eea" title="Purple"></button>
+              <button class="accent-option" data-color="#ff73fa" data-name="magenta" style="--accent: #ff73fa" title="Magenta"></button>
+            </div>
+          </div>
+          
+          <div class="theme-preview" id="theme-preview">
+            <div class="preview-label">Preview</div>
+            <div class="preview-card-mini">
+              <div class="preview-avatar-mini"></div>
+              <div class="preview-text-mini">
+                <div class="preview-name-mini"></div>
+                <div class="preview-tag-mini"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="app-settings-cancel-btn">Cancel</button>
+          <button class="btn btn-primary" id="app-settings-save-btn">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

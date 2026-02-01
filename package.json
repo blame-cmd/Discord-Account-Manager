@@ -1,0 +1,46 @@
+{
+  "name": "blame-manager",
+  "version": "1.0.0",
+  "description": "Discord Account Manager - Seamlessly swap between Discord accounts",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:portable": "electron-builder --win portable"
+  },
+  "author": "BlameManager",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "@noble/ciphers": "^2.1.1",
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.blamemanager.app",
+    "productName": "Blame Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "Blame Manager.exe"
+    }
+  }
+}
